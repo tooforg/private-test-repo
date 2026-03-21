@@ -1,0 +1,16 @@
+name: PR Target CI
+on:
+  pull_request_target:
+    types: [opened, synchronize]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+      - name: Run tests
+        run: |
+          echo "Running tests on PR"
+          ls -la
