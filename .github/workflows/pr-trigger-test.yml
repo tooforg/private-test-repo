@@ -1,0 +1,16 @@
+name: PR Trigger Test
+on:
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  log-trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log PR event
+        run: |
+          echo "PR triggered by: ${{ github.actor }}"
+          echo "PR author: ${{ github.event.pull_request.user.login }}"
+          echo "PR number: ${{ github.event.pull_request.number }}"
+          echo "Token scopes check"
+          curl -s -I -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}"             "https://api.github.com/repos/tooforg/private-test-repo" 2>&1 | grep -i x-oauth
