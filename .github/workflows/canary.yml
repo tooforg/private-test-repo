@@ -1,0 +1,44 @@
+name: Security Test Canary
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create canary artifact
+        run: |
+          echo "CANARY_PRIVATE_REPO_SECRET_DATA_$(date +%s)" > canary.txt
+          echo "This file proves cross-repo artifact access" >> canary.txt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: private-canary
+          path: canary.txt
+          retention-days: 1
+
+      - name: Save Actions cache with canary
+        uses: actions/cache/save@v4
+        with:
+          path: canary.txt
+          key: canary-secret-${{ github.run_id }}
+
+      - name: Generate OIDC token and dump claims
+        run: |
+          OIDC_TOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=api://AzureADTokenExchange" | jq -r '.value')
+          echo "OIDC_HEADER=$(echo $OIDC_TOKEN | cut -d. -f1 | base64 -d 2>/dev/null)" 
+          echo "OIDC_CLAIMS=$(echo $OIDC_TOKEN | cut -d. -f2 | base64 -d 2>/dev/null)"
+          echo "GITHUB_TOKEN_PERMISSIONS=$(curl -s -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/$GITHUB_REPOSITORY)" | head -5
+
+      - name: Expose run context
+        run: |
+          echo "GITHUB_TOKEN first 10: ${GITHUB_TOKEN:0:10}"
+          echo "GITHUB_REPOSITORY: $GITHUB_REPOSITORY"
+          echo "GITHUB_RUN_ID: $GITHUB_RUN_ID"
+          echo "GITHUB_ACTOR: $GITHUB_ACTOR"
