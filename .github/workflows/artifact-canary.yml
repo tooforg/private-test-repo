@@ -1,0 +1,19 @@
+name: Private Artifact Canary
+on:
+  workflow_dispatch:
+jobs:
+  create-artifact:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create canary file
+        run: |
+          echo "PRIVATE_CANARY_1783158285_CROSS_REPO_AUTHZ_TEST" > canary.txt
+          echo "This file should only be accessible to repo members" >> canary.txt
+          echo "Repo: tooforg/private-test-repo" >> canary.txt
+          echo "Created: $(date -u)" >> canary.txt
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: private-canary-artifact
+          path: canary.txt
+          retention-days: 1
