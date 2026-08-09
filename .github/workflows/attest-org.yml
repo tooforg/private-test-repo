@@ -1,0 +1,25 @@
+name: attest-org-probe
+on: workflow_dispatch
+permissions:
+  id-token: write
+  contents: read
+  attestations: write
+jobs:
+  attest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: build canary artifact
+        run: |
+          mkdir -p /tmp/art
+          echo "BBHATTEST7B15C4D731B37399FF12A418A965D93D" > /tmp/art/canary.bin
+          sha256sum /tmp/art/canary.bin
+      - uses: actions/attest-build-provenance@v1
+        id: att
+        continue-on-error: true
+        with:
+          subject-path: /tmp/art/canary.bin
+      - name: report
+        run: |
+          echo "OUTCOME=${{ steps.att.outcome }}"
+          echo "ATTESTATION_ID=${{ steps.att.outputs.attestation-id }}"
+          echo "ATTESTATION_URL=${{ steps.att.outputs.attestation-url }}"
