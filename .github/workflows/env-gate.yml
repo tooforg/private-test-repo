@@ -1,0 +1,11 @@
+name: env-gate
+on:
+  workflow_dispatch:
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    environment: test-gate
+    permissions: {}
+    steps:
+      - name: gate
+        run: echo "released by ${{ github.actor }}"
